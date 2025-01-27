@@ -1,40 +1,35 @@
 import os
 import random
-import asyncio
-import aiohttp
 import time
 
-from selenium.common import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
-from pydub import AudioSegment
+import aiohttp
 import speech_recognition as sr
+from pydub import AudioSegment
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+
+async def download_audio(url, path):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            with open(path, 'wb') as f:
+                f.write(await response.read())
+    print("Downloaded audio asynchronously.")
+
 
 class RecaptchaSolver:
     def __init__(self, driver, timeout=10):
         self.driver = driver
         self.timeout = timeout
 
-    async def download_audio(self, url, path):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                with open(path, 'wb') as f:
-                    f.write(await response.read())
-        print("Downloaded audio asynchronously.")
-
-    def solveCaptcha(self):
+    async def solve_captcha(self):
         try:
             # Switch to the CAPTCHA iframe
-            try:
-                iframe_inner = WebDriverWait(self.driver, self.timeout).until(
-                    EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@title, 'reCAPTCHA')]"))
-                )
-            except TimeoutException:
-                print("No reCAPTCHA iframe found, trying sound.")
-                self.solveAudioCaptcha()
-                return
+            iframe_inner = WebDriverWait(self.driver, self.timeout).until(
+                EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@title, 'reCAPTCHA')]"))
+            )
 
             # Click on the CAPTCHA box
             WebDriverWait(self.driver, self.timeout).until(
@@ -43,26 +38,27 @@ class RecaptchaSolver:
 
             # Check if the CAPTCHA is solved
             time.sleep(1)  # Allow some time for the state to update
-            if self.isSolved():
+            if self.is_solved():
                 print("CAPTCHA solved by clicking.")
                 self.driver.switch_to.default_content()  # Switch back to main content
                 return
 
             # If not solved, attempt audio CAPTCHA solving
-            self.solveAudioCaptcha()
+            await self.solve_audio_captcha()
 
         except Exception as e:
             print(f"An error occurred while solving CAPTCHA: {e}")
             self.driver.switch_to.default_content()  # Ensure we switch back in case of error
             raise
 
-    def solveAudioCaptcha(self):
+    async def solve_audio_captcha(self):
         try:
             self.driver.switch_to.default_content()
 
             # Switch to the audio CAPTCHA iframe
             iframe_audio = WebDriverWait(self.driver, self.timeout).until(
-                EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[@title="recaptcha challenge expires in two minutes"]'))
+                EC.frame_to_be_available_and_switch_to_it(
+                    (By.XPATH, '//iframe[@title="recaptcha challenge expires in two minutes"]'))
             )
 
             # Click on the audio button
@@ -82,7 +78,7 @@ class RecaptchaSolver:
             path_to_mp3 = os.path.normpath(os.path.join(temp_dir, f"{random.randrange(1, 1000)}.mp3"))
             path_to_wav = os.path.normpath(os.path.join(temp_dir, f"{random.randrange(1, 1000)}.wav"))
 
-            asyncio.run(self.download_audio(audio_source, path_to_mp3))
+            await download_audio(audio_source, path_to_mp3)
 
             # Convert mp3 to wav
             sound = AudioSegment.from_mp3(path_to_mp3)
@@ -105,14 +101,14 @@ class RecaptchaSolver:
             print("Entered and submitted CAPTCHA text.")
 
             # Wait for CAPTCHA to be processed
-            time.sleep(0.8)  # Increase this if necessary
+            time.sleep(1)
 
             # Verify CAPTCHA is solved
-            if self.isSolved():
-                print("Audio CAPTCHA solved.")
-            else:
-                print("Failed to solve audio CAPTCHA.")
-                raise Exception("Failed to solve CAPTCHA")
+            # if self.is_solved():
+            #     print("Audio CAPTCHA solved.")
+            # else:
+            #     print("Failed to solve audio CAPTCHA.")
+            #     raise Exception("Failed to solve CAPTCHA")
 
         except Exception as e:
             print(f"An error occurred while solving audio CAPTCHA: {e}")
@@ -123,7 +119,7 @@ class RecaptchaSolver:
             # Always switch back to the main content
             self.driver.switch_to.default_content()
 
-    def isSolved(self):
+    def is_solved(self):
         try:
             # Switch back to the default content
             self.driver.switch_to.default_content()

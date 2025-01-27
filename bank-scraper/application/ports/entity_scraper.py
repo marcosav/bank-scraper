@@ -7,7 +7,7 @@ from domain.transactions import Transactions
 
 
 class EntityScraper(metaclass=abc.ABCMeta):
-    def login(self, credentials: tuple, **kwargs) -> dict:
+    async def login(self, credentials: tuple, **kwargs) -> dict:
         raise NotImplementedError
 
     async def global_position(self) -> GlobalPosition:

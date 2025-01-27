@@ -16,7 +16,7 @@ class WecityScraper(EntityScraper):
     def __init__(self):
         self.__client = WecityAPIClient()
 
-    def login(self, credentials: tuple, **kwargs) -> dict:
+    async def login(self, credentials: tuple, **kwargs) -> dict:
         username, password = credentials
         process_id = kwargs.get("processId", None)
         code = kwargs.get("code", None)

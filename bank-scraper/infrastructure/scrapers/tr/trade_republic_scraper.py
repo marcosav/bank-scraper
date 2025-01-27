@@ -123,7 +123,7 @@ class TradeRepublicScraper(EntityScraper):
     def __init__(self):
         self.__client = TradeRepublicClient()
 
-    def login(self, credentials: tuple, **kwargs) -> dict:
+    async def login(self, credentials: tuple, **kwargs) -> dict:
         phone, pin = credentials
         process_id = kwargs.get("processId", None)
         code = kwargs.get("code", None)

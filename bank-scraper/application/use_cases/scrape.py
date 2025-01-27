@@ -64,7 +64,7 @@ class ScrapeImpl(Scrape):
             return ScrapResult(ScrapResultCode.NO_CREDENTIALS_AVAILABLE)
 
         specific_scraper = self.entity_scrapers[entity]
-        login_result = specific_scraper.login(credentials, **login_args)
+        login_result = await specific_scraper.login(credentials, **login_args)
         login_result_code = login_result["result"]
         del login_result["result"]
 
