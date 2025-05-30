@@ -8,7 +8,7 @@ a = Analysis(
     binaries=[],
     datas=[],
     hiddenimports=[
-        attrs
+        'attrs'
     ],
     hookspath=[],
     hooksconfig={},
