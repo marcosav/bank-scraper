@@ -1,2 +1,3 @@
 pyinstaller==6.13.0
-setuptools-scm
+setuptools-scm==8.3.1
+wheel==0.45.1
