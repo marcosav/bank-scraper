@@ -22,3 +22,8 @@ aiocache==0.12.3
 rotki-pysqlcipher3==2024.10.1
 curl_cffi==0.10.0
 appdirs==1.4.4
+zstandard==0.23.0
+cryptography==44.0.2
+Brotli==1.1.0
+attrs==25.3.0
+h2==4.2.0
